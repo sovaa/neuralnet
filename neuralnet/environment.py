@@ -1,6 +1,8 @@
 import os
 import logging
 
+from .commands import all_commands
+
 logger = logging.getLogger(__name__)
 
 
@@ -90,6 +92,11 @@ class NNEnvironment(object):
         self.config = config
         self.commands = dict()
 
+        for klass in all_commands:
+            inst = klass()
+            inst.setenv(self)
+            self.commands[klass.command.lower()] = inst
+
     def setup(self):
         pass
 
@@ -101,6 +108,9 @@ class NNEnvironment(object):
         if command is None:
             raise RuntimeError("no such command: " + command_string)
         return command
+
+    def shutdown(self):
+        pass
 
 
 def validate_config(environ, config):

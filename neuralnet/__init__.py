@@ -19,11 +19,10 @@ def exit_usage():
 
 def entry():
     """
-    Locate nn.yaml in the current working directory and bootstrap a interactive deploy environment.
+    Locate nn.yaml in the current working directory and bootstrap an interactive environment.
     """
     import yaml
     import json
-    import ast
 
     opts = {
         "config": ["nn.yaml", "nn.json"]
@@ -32,7 +31,7 @@ def entry():
     try:
         getopts, args = getopt.gnu_getopt(sys.argv[1:], "c:l:")
     except getopt.GetoptError as e:
-        print(sys.stderr, "Option parsing failed: " + str(e))
+        error("Option parsing failed: " + str(e))
         sys.exit(1)
 
     for (o, v) in getopts:
@@ -63,17 +62,17 @@ def entry():
             elif conf.endswith(".json"):
                 config_dict = json.load(open(path))
             else:
-                print(sys.stderr, "Unsupported file extension: {0}".format(conf))
+                error("Unsupported file extension: {0}".format(conf))
                 sys.exit(1)
         except Exception as e:
-            print(sys.stderr, "Failed to open configuration {0}: {1}".format(conf, str(e)))
+            error("Failed to open configuration {0}: {1}".format(conf, str(e)))
             sys.exit(1)
 
         config_path = path
         break
 
     if not config_dict:
-        print(sys.stderr, "No configuration found: {0}\n".format(", ".join(config_paths)))
+        error("No configuration found: {0}\n".format(", ".join(config_paths)))
         exit_usage()
         sys.exit(1)
 
@@ -82,7 +81,7 @@ def entry():
     try:
         env = create_env(root, config_dict, opts);
     except RuntimeError as e:
-        print(sys.stderr, str(e))
+        error(str(e))
         sys.exit(1)
 
     if "log_level" in opts:
@@ -91,7 +90,7 @@ def entry():
         log_level = env.config.get("log_level", "INFO")
 
     if not hasattr(logging, log_level):
-        print(sys.stderr, "No such log level: " + log_level)
+        error("No such log level: " + log_level)
         sys.exit(1)
 
     f = "%(asctime)s - %(name)-30s - %(levelname)-7s - %(message)s"
@@ -106,16 +105,16 @@ def entry():
     try:
         command = env.get_command(command)
     except RuntimeError as e:
-        print(sys.stderr, "Command error: " + str(e))
+        error("Command error: " + str(e))
         exit_usage()
 
     try:
         args = command.validate(args)
     except RuntimeError as e:
-        print(sys.stderr, "Invalid arguments: " + str(e))
-        print(sys.stderr, "")
-        print(sys.stderr, "Usage:", command.usage)
-        print(sys.stderr, "Short:", command.short)
+        error("Invalid arguments: " + str(e))
+        error("")
+        error("Usage:", command.usage)
+        error("Short:", command.short)
         sys.exit(1)
 
     status = 0
@@ -130,3 +129,10 @@ def entry():
         env.shutdown()
 
     sys.exit(status)
+
+
+def error(text, args=None):
+    if args is None:
+        print(text, file=sys.stderr)
+    else:
+        print(text, args, file=sys.stderr)
