@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(sys.argv[0])))
+
+try:
+    from neuralnet import entry
+except ImportError as e:
+    print("Could not find entrypoint", str(e))
+    sys.exit(1)
+
+entry()
