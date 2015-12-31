@@ -33,10 +33,12 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'zope.interface',
         'pyyaml',
-        'nltk',
         'simplejson',
-        'zope.interface'
+        'numpy',
+        'nltk',
+        'theano',
     ],
     setup_requires=['nltk'],
     entry_points={
