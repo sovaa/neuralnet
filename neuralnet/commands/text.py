@@ -10,7 +10,7 @@ from neuralnet.nn.utils import Utils
 logger = logging.getLogger(__name__)
 
 _VOCABULARY_SIZE = int(os.environ.get('VOCABULARY_SIZE', '8000'))
-_TRAINING_FILE = 'data/RC_2010-02-10k.json'
+_TRAINING_FILE = 'data/RC_2010-02-20k.json'
 
 
 @implementer(ICommand)
@@ -96,7 +96,7 @@ class TextCommand:
             logger.info("training new model...")
             numpy.random.seed(10)
 
-            self.train_with_sgd(model, x_train, y_train, nepoch=5)
+            self.train_with_sgd(model, x_train, y_train, nepoch=10, evaluate_loss_after=1)
 
             logger.info("saving trained model to: %s" % trained_model_data)
             Utils.save_model_parameters_theano(trained_model_data, model)

@@ -4,9 +4,12 @@ import theano as theano
 import theano.tensor as T
 from .utils import *
 import operator
+import logging
 
 
 class RNNTheano:
+    logger = logging.getLogger(__name__)
+
     def __init__(self, word_dim, hidden_dim=100, bptt_truncate=4):
         # Assign instance variables
         self.word_dim = word_dim
@@ -44,11 +47,8 @@ class RNNTheano:
         y = T.ivector('y')
 
         def forward_prop_step(x_t, s_t1_prev, s_t2_prev):
-            # This is how we calculated the hidden state in a simple RNN. No longer!
-            # s_t = T.tanh(U[:,x_t] + W.dot(s_t1_prev))
-
             # Word embedding layer
-            x_e = E[:,x_t]
+            x_e = E[:, x_t]
 
             # GRU Layer 1
             z_t1 = T.nnet.hard_sigmoid(U[0].dot(x_e) + W[0].dot(s_t1_prev) + b[0])
@@ -151,7 +151,7 @@ class RNNTheano:
             # Get the actual parameter value from the mode, e.g. model.W
             parameter_T = operator.attrgetter(pname)(self)
             parameter = parameter_T.get_value()
-            self.logger.info("Performing gradient check for parameter %s with size %d." % (pname, np.prod(parameter.shape)))
+            self.logger.debug("Performing gradient check for parameter %s with size %d." % (pname, np.prod(parameter.shape)))
 
             # Iterate over each element of the parameter matrix, e.g. (0,0), (0,1), ...
             it = np.nditer(parameter, flags=['multi_index'], op_flags=['readwrite'])
@@ -177,12 +177,12 @@ class RNNTheano:
 
                 # If the error is to large fail the gradient check
                 if relative_error > error_threshold:
-                    print("Gradient Check ERROR: parameter=%s ix=%s" % (pname, ix))
-                    print("+h Loss: %f" % gradplus)
-                    print("-h Loss: %f" % gradminus)
-                    print("Estimated_gradient: %f" % estimated_gradient)
-                    print("Backpropagation gradient: %f" % backprop_gradient)
-                    print("Relative Error: %f" % relative_error)
+                    self.logger.error("Gradient Check ERROR: parameter=%s ix=%s" % (pname, ix))
+                    self.logger.error("+h Loss: %f" % gradplus)
+                    self.logger.error("-h Loss: %f" % gradminus)
+                    self.logger.error("Estimated_gradient: %f" % estimated_gradient)
+                    self.logger.error("Backpropagation gradient: %f" % backprop_gradient)
+                    self.logger.error("Relative Error: %f" % relative_error)
                     return
                 it.iternext()
-            print("Gradient check for parameter %s passed." % (pname))
+            self.logger.debug("Gradient check for parameter %s passed." % (pname))
